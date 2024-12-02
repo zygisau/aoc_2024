@@ -10,6 +10,25 @@ import (
 	"strings"
 )
 
+type Day2T struct{}
+
+var Day2 Day2T
+
+type CompareError struct {
+	Error error
+	Idx   int
+}
+
+var Error CompareError
+
+func (e *CompareError) New(message string, idx int) *CompareError {
+	return &CompareError{Error: errors.New(message), Idx: idx}
+}
+
+func (e *CompareError) String() string {
+	return fmt.Sprintf("Error: %q, index: %d", e.Error, Error.Idx)
+}
+
 func IntAbs(a int, b int) int {
 	if a > b {
 		return a - b
@@ -17,12 +36,14 @@ func IntAbs(a int, b int) int {
 	return b - a
 }
 
-func CompareReports(reports []int) (bool, error) {
+type CompareDelegateFn func(reports []int) (bool, *CompareError)
+
+func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 	continuityFactor := 0
 	isContinuous := true
 	var prev *int
 	var next *int
-	for i, report := range reports {
+	for i, current := range reports {
 		if i-1 >= 0 {
 			prev = &reports[i-1]
 		}
@@ -33,8 +54,8 @@ func CompareReports(reports []int) (bool, error) {
 
 		if next != nil {
 			previousLevelsContinuity := continuityFactor
-			if (*next - report) != 0 {
-				continuityFactor = (*next - report) / IntAbs(*next, report)
+			if (*next - current) != 0 {
+				continuityFactor = (*next - current) / IntAbs(*next, current)
 			}
 			previousIsContinuous := isContinuous
 			if prev != nil {
@@ -42,21 +63,17 @@ func CompareReports(reports []int) (bool, error) {
 			}
 
 			if previousIsContinuous != isContinuous {
-				return false, errors.New("not continuous")
+				return false, Error.New("not continuous", i+1)
 			}
 		}
 
-		isAdjacentDifferOneToThree := []bool{true, true}
-		if prev != nil {
-			diff := IntAbs(*prev, report)
-			isAdjacentDifferOneToThree[0] = diff >= 1 && diff <= 3
-		}
+		isAdjacentDifferOneToThree := true
 		if next != nil {
-			diff := IntAbs(*next, report)
-			isAdjacentDifferOneToThree[1] = diff >= 1 && diff <= 3
+			diff := IntAbs(*next, current)
+			isAdjacentDifferOneToThree = diff >= 1 && diff <= 3
 		}
-		if !isAdjacentDifferOneToThree[0] || !isAdjacentDifferOneToThree[1] {
-			return false, errors.New("adjacent values differ less than 1 or more than 3")
+		if !isAdjacentDifferOneToThree {
+			return false, Error.New("adjacent values differ less than 1 or more than 3", i+1)
 		}
 
 		if prev != nil {
@@ -84,15 +101,15 @@ func SumArray(arr []bool) int {
 	return result
 }
 
-func CountSafeReports(reportLogs [][]int) int {
+func (Day2T) CountSafeReports(reportLogs [][]int, CompareDelegate CompareDelegateFn) int {
 	out := make([]bool, len(reportLogs))
 	for i, reports := range reportLogs {
-		out[i], _ = CompareReports(reports)
+		out[i], _ = CompareDelegate(reports)
 	}
 	return SumArray(out)
 }
 
-func ReadInputFile(filename string) ([][]int, error) {
+func (Day2T) ReadInputFile(filename string) ([][]int, error) {
 	a := [][]int{}
 	f, err := os.Open(filename)
 	if err != nil {
@@ -122,4 +139,18 @@ func ReadInputFile(filename string) ([][]int, error) {
 		}
 	}
 	return a, err
+}
+
+func SaveRemove(slice []int, s int) []int {
+	return append(slice[:s], slice[s+1:]...)
+}
+
+func (Day2T) CompareReportsWithFix(reports []int) (bool, *CompareError) {
+	out, err := Day2.CompareReports(reports)
+	if err != nil {
+		reports = SaveRemove(reports, err.Idx)
+		secondOut, secondErr := Day2.CompareReports(reports)
+		return secondOut, secondErr
+	}
+	return out, err
 }
