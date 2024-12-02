@@ -36,17 +36,33 @@ func IntAbs(a int, b int) int {
 	return b - a
 }
 
+func CheckContinuity(a int, b int) int {
+	diff := a - b
+	if diff < 0 {
+		return -1
+	}
+	if diff > 0 {
+		return 1
+	}
+	return 0
+}
+
 type CompareDelegateFn func(reports []int) (bool, *CompareError)
 
 func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 	continuityFactor := 0
-	isContinuous := true
-	var prev *int
-	var next *int
-	for i, current := range reports {
-		if i-1 >= 0 {
-			prev = &reports[i-1]
+	if len(reports) > 1 {
+		continuityFactor = CheckContinuity(reports[1], reports[0])
+		diff := IntAbs(reports[1], reports[0])
+		isAdjacentDifferOneToThree := diff >= 1 && diff <= 3
+		if !isAdjacentDifferOneToThree {
+			return false, Error.New("adjacent values differ less than 1 or more than 3", 1)
 		}
+	}
+	var next *int
+
+	for i := 1; i < len(reports); i++ {
+		current := reports[i]
 
 		if i+1 < len(reports) {
 			next = &reports[i+1]
@@ -54,15 +70,9 @@ func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 
 		if next != nil {
 			previousLevelsContinuity := continuityFactor
-			if (*next - current) != 0 {
-				continuityFactor = (*next - current) / IntAbs(*next, current)
-			}
-			previousIsContinuous := isContinuous
-			if prev != nil {
-				isContinuous = previousLevelsContinuity == continuityFactor
-			}
+			continuityFactor = CheckContinuity(*next, current)
 
-			if previousIsContinuous != isContinuous {
+			if previousLevelsContinuity != continuityFactor {
 				return false, Error.New("not continuous", i+1)
 			}
 		}
@@ -76,9 +86,6 @@ func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 			return false, Error.New("adjacent values differ less than 1 or more than 3", i+1)
 		}
 
-		if prev != nil {
-			prev = nil
-		}
 		if next != nil {
 			next = nil
 		}

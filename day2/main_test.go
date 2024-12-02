@@ -83,7 +83,7 @@ func TestCompareSafeReportsWithFix(t *testing.T) {
 
 func TestReadAndCountSafeReportsWithFix(t *testing.T) {
 	filename := "input.txt"
-	want := 530
+	want := 530 //bad
 	a, err := Day2.ReadInputFile(filename)
 	if err != nil {
 		t.Error(err)
