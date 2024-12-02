@@ -36,7 +36,7 @@ func IntAbs(a int, b int) int {
 	return b - a
 }
 
-func CheckContinuity(a int, b int) int {
+func EvaluateContinuityStatus(a int, b int) int {
 	diff := a - b
 	if diff < 0 {
 		return -1
@@ -52,42 +52,25 @@ type CompareDelegateFn func(reports []int) (bool, *CompareError)
 func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 	continuityFactor := 0
 	if len(reports) > 1 {
-		continuityFactor = CheckContinuity(reports[1], reports[0])
-		diff := IntAbs(reports[1], reports[0])
-		isAdjacentDifferOneToThree := diff >= 1 && diff <= 3
-		if !isAdjacentDifferOneToThree {
-			return false, Error.New("adjacent values differ less than 1 or more than 3", 1)
-		}
+		continuityFactor = EvaluateContinuityStatus(reports[1], reports[0])
 	}
-	var next *int
 
-	for i := 1; i < len(reports); i++ {
+	for i := 0; i < len(reports)-1; i++ {
 		current := reports[i]
+		next := reports[i+1]
 
-		if i+1 < len(reports) {
-			next = &reports[i+1]
-		}
+		previousLevelsContinuity := continuityFactor
+		continuityFactor = EvaluateContinuityStatus(next, current)
 
-		if next != nil {
-			previousLevelsContinuity := continuityFactor
-			continuityFactor = CheckContinuity(*next, current)
-
-			if previousLevelsContinuity != continuityFactor {
-				return false, Error.New("not continuous", i+1)
-			}
+		if previousLevelsContinuity != continuityFactor {
+			return false, Error.New("not continuous", i+1)
 		}
 
 		isAdjacentDifferOneToThree := true
-		if next != nil {
-			diff := IntAbs(*next, current)
-			isAdjacentDifferOneToThree = diff >= 1 && diff <= 3
-		}
+		diff := IntAbs(next, current)
+		isAdjacentDifferOneToThree = diff >= 1 && diff <= 3
 		if !isAdjacentDifferOneToThree {
 			return false, Error.New("adjacent values differ less than 1 or more than 3", i+1)
-		}
-
-		if next != nil {
-			next = nil
 		}
 	}
 	return true, nil
