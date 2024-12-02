@@ -92,11 +92,11 @@ func CountSafeReports(reportLogs [][]int) int {
 	return SumArray(out)
 }
 
-func ReadInputFile(filename string) ([]int, []int, error) {
-	a, b := []int{}, []int{}
+func ReadInputFile(filename string) ([][]int, error) {
+	a := [][]int{}
 	f, err := os.Open(filename)
 	if err != nil {
-		return a, b, err
+		return a, err
 	}
 
 	reader := bufio.NewReader(f)
@@ -106,25 +106,20 @@ func ReadInputFile(filename string) ([]int, []int, error) {
 			if err == io.EOF {
 				break
 			}
-			return []int{}, []int{}, err
+			return [][]int{}, err
 		}
 		line = strings.TrimSuffix(line, "\n")
-		splitted := strings.Split(line, "   ")
-		if len(splitted) != 2 {
-			return []int{}, []int{}, fmt.Errorf("splitted string '%v' does not contain two integers", line)
-		}
+		splitted := strings.Split(line, " ")
 
-		aStr, err := strconv.Atoi(splitted[0])
-		if err != nil {
-			return []int{}, []int{}, fmt.Errorf("a string '%v' cannot be casted to integer", splitted[0])
-		}
-		bStr, err := strconv.Atoi(splitted[1])
-		if err != nil {
-			return []int{}, []int{}, fmt.Errorf("b string '%v' cannot be casted to integer", splitted[1])
-		}
+		a = append(a, make([]int, len(splitted)))
 
-		a = append(a, aStr)
-		b = append(b, bStr)
+		for i, str := range splitted {
+			integer, err := strconv.Atoi(str)
+			if err != nil {
+				return [][]int{}, fmt.Errorf("a string '%v' cannot be casted to integer", splitted[0])
+			}
+			a[len(a)-1][i] = integer
+		}
 	}
-	return a, b, err
+	return a, err
 }

@@ -43,3 +43,17 @@ func TestCountSafeReports(t *testing.T) {
 		t.Fatalf(`CompareReports() = %d, want %d, got %d`, out, want, out)
 	}
 }
+
+func TestReadAndCountSafeReports(t *testing.T) {
+	filename := "input.txt"
+	want := 21328497
+	a, err := ReadInputFile(filename)
+	if err != nil {
+		t.Error(err)
+	}
+	out := CountSafeReports(a)
+
+	if want != out {
+		t.Fatalf(`CountSafeReports() = %d, want %d, got %d`, out, want, out)
+	}
+}
