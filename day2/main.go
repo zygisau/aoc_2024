@@ -52,7 +52,7 @@ type CompareDelegateFn func(reports []int) (bool, *CompareError)
 func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 	continuityFactor := 0
 	if len(reports) > 1 {
-		continuityFactor = EvaluateContinuityStatus(reports[1], reports[0])
+		continuityFactor = EvaluateContinuityStatus(reports[0], reports[1])
 	}
 
 	for i := 0; i < len(reports)-1; i++ {
@@ -60,17 +60,17 @@ func (Day2T) CompareReports(reports []int) (bool, *CompareError) {
 		next := reports[i+1]
 
 		previousLevelsContinuity := continuityFactor
-		continuityFactor = EvaluateContinuityStatus(next, current)
+		continuityFactor = EvaluateContinuityStatus(current, next)
 
 		if previousLevelsContinuity != continuityFactor {
-			return false, Error.New("not continuous", i+1)
+			return false, Error.New("not continuous", i)
 		}
 
 		isAdjacentDifferOneToThree := true
 		diff := IntAbs(next, current)
 		isAdjacentDifferOneToThree = diff >= 1 && diff <= 3
 		if !isAdjacentDifferOneToThree {
-			return false, Error.New("adjacent values differ less than 1 or more than 3", i+1)
+			return false, Error.New("adjacent values differ less than 1 or more than 3", i)
 		}
 	}
 	return true, nil
@@ -138,6 +138,7 @@ func SaveRemove(slice []int, s int) []int {
 func (Day2T) CompareReportsWithFix(reports []int) (bool, *CompareError) {
 	out, err := Day2.CompareReports(reports)
 	if err != nil {
+		// try removing more values
 		reports = SaveRemove(reports, err.Idx)
 		secondOut, secondErr := Day2.CompareReports(reports)
 		return secondOut, secondErr
