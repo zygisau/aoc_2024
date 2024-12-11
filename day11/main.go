@@ -1,17 +1,14 @@
 package day11
 
 import (
-	"errors"
-	"fmt"
 	"math"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
-
-	"slices"
 )
 
-func Blink(stones *[]uint64) ([]uint64, error) {
+func Blink(stones *[]uint64) (*[]uint64, error) {
 	for i := 0; i < len(*stones); i++ {
 		stone := (*stones)[i]
 
@@ -19,23 +16,19 @@ func Blink(stones *[]uint64) ([]uint64, error) {
 		case stone == 0:
 			(*stones)[i] = 1
 		case isEvenDigits(stone):
-			digits := splitDigits(stone)
-			if len(digits) != 2 {
-				return nil, errors.New(fmt.Sprintf("Digit: %d split failed: %s, expected 2 digits", stone, fmt.Sprint(digits)))
-			}
-
-			(*stones)[i] = digits[0]
-			*stones = slices.Insert(*stones, i+1, digits[1])
+			first, second := splitDigits(stone)
+			(*stones)[i] = first
+			*stones = slices.Insert(*stones, i+1, second)
 			i++
 		default:
 			(*stones)[i] = (*stones)[i] * 2024
 			break
 		}
 	}
-	return *stones, nil
+	return stones, nil
 }
 
-func splitDigits(stone uint64) []uint64 {
+func splitDigits(stone uint64) (uint64, uint64) {
 	digits := []uint64{}
 	for stone > 0 {
 		mod := stone % 10
@@ -45,10 +38,7 @@ func splitDigits(stone uint64) []uint64 {
 	secondHalf := digits[:len(digits)/2]
 	firstHalf := digits[len(digits)/2:]
 
-	return []uint64{
-		JoinBackwardNumbers(firstHalf),
-		JoinBackwardNumbers(secondHalf),
-	}
+	return JoinBackwardNumbers(firstHalf), JoinBackwardNumbers(secondHalf)
 }
 
 func JoinBackwardNumbers(arr []uint64) uint64 {
