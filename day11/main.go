@@ -1,27 +1,52 @@
 package day11
 
 import (
+	"errors"
+	"fmt"
 	"math"
 	"os"
-	"slices"
+	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
-func Blink(stones *[]uint64) (*[]uint64, error) {
-	for i := 0; i < len(*stones); i++ {
-		stone := (*stones)[i]
+func callerName(skip int) string {
+	const unknown = "unknown"
+	pcs := make([]uintptr, 1)
+	n := runtime.Callers(skip+2, pcs)
+	if n < 1 {
+		return unknown
+	}
+	frame, _ := runtime.CallersFrames(pcs).Next()
+	if frame.Function == "" {
+		return unknown
+	}
+	return frame.Function
+}
 
+func timer() func() {
+	name := callerName(1)
+	start := time.Now()
+	return func() {
+		fmt.Printf("%s took %v\n", name, time.Since(start))
+	}
+}
+
+func Blink(stones *List[uint64]) (*List[uint64], error) {
+	for stone := stones.Front(); stone != nil; stone = stone.Next() {
 		switch {
-		case stone == 0:
-			(*stones)[i] = 1
-		case isEvenDigits(stone):
-			first, second := splitDigits(stone)
-			(*stones)[i] = first
-			*stones = slices.Insert(*stones, i+1, second)
-			i++
+		case stone.Value < 0:
+			return nil, errors.New(fmt.Sprintf("Got value: %d. Something is really bad", stone.Value))
+		case stone.Value == 0:
+			stone.Value = 1
+		case isEvenDigits(stone.Value):
+			first, second := splitDigits(stone.Value)
+			stone.Value = first
+			stones.InsertAfter(second, stone)
+			stone = stone.Next()
 		default:
-			(*stones)[i] = (*stones)[i] * 2024
+			stone.Value = stone.Value * 2024
 			break
 		}
 	}
@@ -56,20 +81,20 @@ func isEvenDigits(stone uint64) bool {
 	return math.Mod(count, 2) == 0
 }
 
-func ReadFile(filename string) ([]uint64, error) {
+func ReadFile(filename string) (*List[uint64], error) {
 	f, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 	line := strings.TrimSuffix(string(f), "\n")
 	rawStones := strings.Split(line, " ")
-	stones := []uint64{}
+	stones := New[uint64]()
 	for _, rawStone := range rawStones {
 		stone, err := strconv.ParseUint(rawStone, 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		stones = append(stones, stone)
+		stones.PushBack(stone)
 	}
 	return stones, nil
 }
