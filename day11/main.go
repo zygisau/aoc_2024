@@ -45,6 +45,7 @@ func Blink(stones *List[uint64]) (*List[uint64], error) {
 			stone.Value = first
 			stones.InsertAfter(second, stone)
 			stone = stone.Next()
+			// stones.PushBack(second)
 		default:
 			stone.Value = stone.Value * 2024
 			break

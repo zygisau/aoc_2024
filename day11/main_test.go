@@ -2,6 +2,7 @@ package day11
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -25,6 +26,31 @@ func TestBlink(t *testing.T) {
 
 	if !reflect.DeepEqual(want, out) {
 		t.Fatalf("TestBlink()\nwant: %s\n got: %s", fmt.Sprint(want), fmt.Sprint(out))
+	}
+}
+
+func TestBlinkOneNumber(t *testing.T) {
+	aRaw := []uint64{0}
+	a := New[uint64]()
+	for _, aValue := range aRaw {
+		a.PushBack(aValue)
+	}
+
+	for i := 0; i < 25; i++ {
+		var err error
+		a, err = Blink(a)
+		if err != nil {
+			t.Error(err)
+		}
+		out := []uint64{}
+		for aa := a.Front(); aa != nil; aa = aa.Next() {
+			out = append(out, aa.Value)
+		}
+
+		err = os.WriteFile(fmt.Sprintf("out/%d.txt", i), []byte(fmt.Sprint(out)), 0644)
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }
 
